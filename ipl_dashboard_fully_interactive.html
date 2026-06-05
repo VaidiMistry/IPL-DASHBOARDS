@@ -1,0 +1,839 @@
+
+<h2 class="sr-only">IPL Analytics Dashboard 2008–2026 — fully interactive with working season filters, nav tabs, chart toggles, and leaderboard switching.</h2>
+<link href="https://fonts.googleapis.com/css2?family=Bebas+Neue&family=Barlow:wght@400;500;600;700&display=swap" rel="stylesheet">
+<style>
+*{box-sizing:border-box;margin:0;padding:0}
+:root{--bg:#0a0e1a;--card:#111827;--card2:#1a2235;--border:#1f2937;--orange:#FF6B00;--gold:#FFD700;--cyan:#00E5FF;--text:#e2e8f0;--muted:#64748b;--purple:#a855f7}
+body{background:var(--bg);color:var(--text);font-family:'Barlow',sans-serif;font-size:13px}
+.dash{display:grid;grid-template-columns:190px 1fr;height:900px;overflow:hidden}
+.sidebar{background:#0d1220;border-right:1px solid var(--border);display:flex;flex-direction:column;overflow:hidden}
+.logo-area{padding:16px 14px 12px;border-bottom:1px solid var(--border);flex-shrink:0}
+.logo-title{font-family:'Bebas Neue',sans-serif;font-size:22px;color:var(--orange);letter-spacing:2px}
+.logo-sub{font-size:9px;color:var(--muted);letter-spacing:3px;text-transform:uppercase;margin-top:1px}
+.ball{display:inline-block;width:18px;height:18px;background:#dc2626;border-radius:50%;vertical-align:middle;margin-right:6px;position:relative;top:-1px}
+.nav{padding:12px 0;flex:1}
+.nav-item{display:flex;align-items:center;gap:9px;padding:9px 14px;cursor:pointer;border-left:3px solid transparent;font-size:12px;color:var(--muted);transition:.15s;letter-spacing:.3px;user-select:none}
+.nav-item:hover{color:var(--text);background:rgba(255,107,0,.06);border-left-color:rgba(255,107,0,.4)}
+.nav-item.active{color:var(--orange);background:rgba(255,107,0,.1);border-left-color:var(--orange)}
+.nav-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.pitch-box{padding:10px 12px 16px;margin-top:auto;flex-shrink:0}
+.pitch-label{font-size:9px;color:var(--muted);letter-spacing:1.5px;text-transform:uppercase;margin-bottom:6px}
+.main{display:flex;flex-direction:column;overflow:hidden}
+.topbar{height:52px;background:#0d1220;border-bottom:1px solid var(--border);display:flex;align-items:center;padding:0 20px;gap:12px;flex-shrink:0}
+.topbar-title{font-family:'Bebas Neue',sans-serif;font-size:19px;letter-spacing:2px;flex:1}
+.s-btn{background:var(--card2);border:1px solid var(--border);border-radius:5px;color:var(--muted);padding:4px 11px;font-size:11px;cursor:pointer;font-family:'Barlow',sans-serif;letter-spacing:.3px;transition:.15s;white-space:nowrap}
+.s-btn:hover{color:var(--text);border-color:#374151}
+.s-btn.act{background:rgba(255,107,0,.18);border-color:var(--orange);color:var(--orange);font-weight:600}
+.live-badge{background:var(--orange);color:#fff;border:none;border-radius:5px;padding:4px 11px;font-size:11px;font-family:'Barlow',sans-serif;font-weight:600;letter-spacing:.5px;cursor:default;flex-shrink:0}
+.content{flex:1;overflow-y:auto;padding:16px;display:flex;flex-direction:column;gap:12px}
+.content::-webkit-scrollbar{width:3px}
+.content::-webkit-scrollbar-thumb{background:var(--orange);border-radius:2px}
+.kpi-row{display:grid;grid-template-columns:repeat(4,1fr);gap:10px}
+.kpi{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px 16px 0;position:relative;overflow:hidden;cursor:default}
+.kpi::after{content:'';position:absolute;bottom:0;left:0;right:0;height:3px}
+.kpi.k1::after{background:var(--gold)}.kpi.k2::after{background:var(--orange)}.kpi.k3::after{background:var(--purple)}.kpi.k4::after{background:var(--cyan)}
+.kpi-icon{position:absolute;top:10px;right:12px;font-size:20px;opacity:.15}
+.kpi-label{font-size:9px;color:var(--muted);text-transform:uppercase;letter-spacing:1.5px;margin-bottom:4px}
+.kpi-val{font-family:'Bebas Neue',sans-serif;font-size:30px;letter-spacing:1px;line-height:1}
+.kpi.k1 .kpi-val{color:var(--gold)}.kpi.k2 .kpi-val{color:var(--orange)}.kpi.k3 .kpi-val{color:var(--purple)}.kpi.k4 .kpi-val{color:var(--cyan)}
+.kpi-sub{font-size:10px;color:var(--muted);padding:4px 0 12px}
+.row2{display:grid;grid-template-columns:1.5fr 1fr;gap:10px}
+.row3{display:grid;grid-template-columns:1fr 1fr 1fr;gap:10px}
+.card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:14px}
+.card-title{font-size:9px;text-transform:uppercase;letter-spacing:2px;color:var(--muted);margin-bottom:10px;display:flex;align-items:center;gap:6px}
+.card-title::before{content:'';width:3px;height:11px;border-radius:2px;background:var(--orange);display:inline-block;flex-shrink:0}
+.tabs{display:flex;gap:5px;margin-bottom:10px}
+.tab{font-size:10px;padding:3px 10px;border-radius:4px;cursor:pointer;border:1px solid var(--border);color:var(--muted);letter-spacing:.3px;transition:.15s;background:transparent;font-family:'Barlow',sans-serif}
+.tab:hover{color:var(--text)}
+.tab.act{background:rgba(255,107,0,.15);border-color:var(--orange);color:var(--orange);font-weight:600}
+.champ-row{display:flex;align-items:center;gap:7px;margin-bottom:6px}
+.team-badge{width:26px;height:26px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#fff;flex-shrink:0;letter-spacing:.3px}
+.team-short{font-size:10px;color:var(--muted);width:36px;flex-shrink:0}
+.bar-track{flex:1;background:rgba(255,255,255,.04);border-radius:3px;height:16px;position:relative;overflow:hidden}
+.bar-fill{height:100%;border-radius:3px;transition:width .5s cubic-bezier(.4,0,.2,1)}
+.bar-val{position:absolute;right:6px;top:50%;transform:translateY(-50%);font-size:10px;font-weight:700;color:#fff}
+.lb-row{display:flex;align-items:center;gap:7px;padding:6px 0;border-bottom:1px solid rgba(31,41,55,.7)}
+.lb-row:last-child{border-bottom:none}
+.lb-rank{font-family:'Bebas Neue',sans-serif;font-size:15px;width:16px;text-align:center;color:var(--muted);flex-shrink:0}
+.lb-rank.gold{color:var(--gold)}.lb-rank.silver{color:#94a3b8}.lb-rank.bronze{color:#b45309}
+.lb-dot{width:7px;height:7px;border-radius:50%;flex-shrink:0}
+.lb-bar{height:2px;border-radius:1px;margin-top:3px}
+.venue-row{display:flex;align-items:center;justify-content:space-between;padding:6px 0;border-bottom:1px solid rgba(31,41,55,.5)}
+.venue-row:last-child{border-bottom:none}
+.v-bar{height:2px;border-radius:1px;background:rgba(0,229,255,.35);margin-top:3px}
+.footer{padding:8px 20px;border-top:1px solid var(--border);font-size:9px;color:var(--muted);letter-spacing:1px;text-align:center;flex-shrink:0}
+.page{display:none}.page.active{display:contents}
+.full-card{background:var(--card);border:1px solid var(--border);border-radius:10px;padding:16px;height:100%}
+.section-grid{display:grid;grid-template-columns:1fr 1fr;gap:10px;height:calc(100% - 60px)}
+</style>
+
+<div class="dash">
+  <!-- SIDEBAR -->
+  <div class="sidebar">
+    <div class="logo-area">
+      <div class="logo-title"><span class="ball"></span>IPL</div>
+      <div class="logo-sub">Analytics 2008–2026</div>
+    </div>
+    <nav class="nav" id="mainNav">
+      <div class="nav-item active" data-page="overview"><span class="nav-dot" style="background:#FF6B00"></span>Overview</div>
+      <div class="nav-item" data-page="teams"><span class="nav-dot" style="background:#FFD700"></span>Teams</div>
+      <div class="nav-item" data-page="batsmen"><span class="nav-dot" style="background:#00E5FF"></span>Batsmen</div>
+      <div class="nav-item" data-page="bowlers"><span class="nav-dot" style="background:#a855f7"></span>Bowlers</div>
+      <div class="nav-item" data-page="venues"><span class="nav-dot" style="background:#22c55e"></span>Venues</div>
+      <div class="nav-item" data-page="matches"><span class="nav-dot" style="background:#f43f5e"></span>Matches</div>
+    </nav>
+    <div class="pitch-box">
+      <div class="pitch-label">Pitch View</div>
+      <svg viewBox="0 0 110 180" width="100%" style="border-radius:8px;opacity:.5">
+        <rect width="110" height="180" rx="8" fill="#1a3a1a"/>
+        <rect x="8" y="8" width="94" height="164" rx="4" fill="#1e5c1e"/>
+        <rect x="30" y="45" width="50" height="90" fill="none" stroke="#4ade80" stroke-width="1.5" opacity=".6"/>
+        <rect x="40" y="70" width="30" height="40" fill="none" stroke="#4ade80" stroke-width="1" opacity=".5"/>
+        <line x1="8" x2="102" y1="90" y2="90" stroke="#4ade80" stroke-width=".7" opacity=".4"/>
+        <circle cx="55" cy="90" r="2.5" fill="#FFD700" opacity=".9"/>
+        <rect x="51" y="77" width="8" height="26" rx="1" fill="#8B4513" opacity=".6"/>
+        <circle cx="55" cy="25" r="7" fill="none" stroke="#4ade80" stroke-width="1" opacity=".35"/>
+        <circle cx="55" cy="155" r="7" fill="none" stroke="#4ade80" stroke-width="1" opacity=".35"/>
+      </svg>
+    </div>
+  </div>
+
+  <!-- MAIN -->
+  <div class="main">
+    <div class="topbar">
+      <div class="topbar-title" id="pageTitle">🏆 Overview Dashboard</div>
+      <div id="seasonBtns" style="display:flex;gap:6px">
+        <button class="s-btn act" data-s="All">All</button>
+        <button class="s-btn" data-s="2022">2022</button>
+        <button class="s-btn" data-s="2023">2023</button>
+        <button class="s-btn" data-s="2024">2024</button>
+        <button class="s-btn" data-s="2025">2025</button>
+        <button class="s-btn" data-s="2026">2026</button>
+      </div>
+      <div class="live-badge">⚡ Live</div>
+    </div>
+
+    <div class="content" id="mainContent">
+
+      <!-- ===== OVERVIEW PAGE ===== -->
+      <div class="page active" id="page-overview">
+
+        <div class="kpi-row">
+          <div class="kpi k1"><div class="kpi-icon">🏆</div><div class="kpi-label">Total Seasons</div><div class="kpi-val" id="kpi-seasons">19</div><div class="kpi-sub">2008 — 2026</div></div>
+          <div class="kpi k2"><div class="kpi-icon">🏏</div><div class="kpi-label">Total Matches</div><div class="kpi-val" id="kpi-matches">1,100+</div><div class="kpi-sub" id="kpi-matches-sub">Across all seasons</div></div>
+          <div class="kpi k3"><div class="kpi-icon">🥇</div><div class="kpi-label">Most Titles</div><div class="kpi-val" id="kpi-titles">5</div><div class="kpi-sub" id="kpi-titles-sub">MI & CSK — joint record</div></div>
+          <div class="kpi k4"><div class="kpi-icon">🔥</div><div class="kpi-label">Record Season Runs</div><div class="kpi-val" id="kpi-runs">973</div><div class="kpi-sub" id="kpi-runs-sub">V. Kohli — RCB 2016</div></div>
+        </div>
+
+        <div class="row2">
+          <div class="card">
+            <div class="card-title">IPL Champions</div>
+            <div class="tabs" id="champTabs">
+              <button class="tab act" data-mode="titles">Titles</button>
+              <button class="tab" data-mode="finals">Finals Played</button>
+              <button class="tab" data-mode="runners">Runners-Up</button>
+            </div>
+            <div id="champBars"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Orange Cap Runs by Season</div>
+            <div style="height:195px;position:relative">
+              <canvas id="lineChart" role="img" aria-label="Orange Cap runs trend 2008-2026">Orange Cap runs 2008-2026.</canvas>
+            </div>
+            <div style="text-align:center;font-size:9px;color:#F26522;margin-top:5px;letter-spacing:1px">★ RECORD: V. KOHLI 973 RUNS (2016)</div>
+          </div>
+        </div>
+
+        <div class="row3">
+          <div class="card">
+            <div class="card-title">Points Heatmap</div>
+            <div id="heatmap"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Top Batsmen</div>
+            <div id="batLeader"></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Top Venues</div>
+            <div id="venueList"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== TEAMS PAGE ===== -->
+      <div class="page" id="page-teams">
+        <div class="kpi-row">
+          <div class="kpi k1"><div class="kpi-icon">🏆</div><div class="kpi-label">Total Teams Ever</div><div class="kpi-val">13</div><div class="kpi-sub">Active: 10 teams</div></div>
+          <div class="kpi k2"><div class="kpi-icon">🏏</div><div class="kpi-label">Most Dominant</div><div class="kpi-val">MI</div><div class="kpi-sub">5 titles, 8 finals</div></div>
+          <div class="kpi k3"><div class="kpi-icon">💔</div><div class="kpi-label">Most Finals Lost</div><div class="kpi-val">CSK</div><div class="kpi-sub">5 runner-up finishes</div></div>
+          <div class="kpi k4"><div class="kpi-icon">⚡</div><div class="kpi-label">Winless Teams</div><div class="kpi-val">3</div><div class="kpi-sub">DC, PBKS, LSG</div></div>
+        </div>
+        <div class="row2">
+          <div class="card">
+            <div class="card-title">Team Performance — Titles vs Finals Played</div>
+            <div style="height:230px;position:relative"><canvas id="teamsChart" role="img" aria-label="Team titles vs finals bar chart">Team titles comparison.</canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Win Rate by Team</div>
+            <div id="teamWinRate"></div>
+          </div>
+        </div>
+        <div class="card" style="padding:14px">
+          <div class="card-title">All Teams — Full Record</div>
+          <div id="teamTable"></div>
+        </div>
+      </div>
+
+      <!-- ===== BATSMEN PAGE ===== -->
+      <div class="page" id="page-batsmen">
+        <div class="kpi-row">
+          <div class="kpi k1"><div class="kpi-icon">🏏</div><div class="kpi-label">Record Season</div><div class="kpi-val">973</div><div class="kpi-sub">Kohli 2016</div></div>
+          <div class="kpi k2"><div class="kpi-icon">💥</div><div class="kpi-label">Best Strike Rate</div><div class="kpi-val">176</div><div class="kpi-sub">Narine 2024</div></div>
+          <div class="kpi k3"><div class="kpi-icon">💯</div><div class="kpi-label">Most Hundreds</div><div class="kpi-val">4</div><div class="kpi-sub">Buttler 2022</div></div>
+          <div class="kpi k4"><div class="kpi-icon">6️⃣</div><div class="kpi-label">Most Sixes Season</div><div class="kpi-val">45</div><div class="kpi-sub">Buttler 2022</div></div>
+        </div>
+        <div class="row2">
+          <div class="card">
+            <div class="card-title">Top Run Scorers</div>
+            <div class="tabs" id="batTabs">
+              <button class="tab act" data-mode="runs">Runs</button>
+              <button class="tab" data-mode="avg">Average</button>
+              <button class="tab" data-mode="sr">Strike Rate</button>
+              <button class="tab" data-mode="sixes">Sixes</button>
+            </div>
+            <div style="height:200px;position:relative"><canvas id="batChart" role="img" aria-label="Top batsmen chart">Top batsmen.</canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Detailed Leaderboard</div>
+            <div class="tabs" id="batSeasonTabs" style="flex-wrap:wrap;gap:4px">
+              <button class="tab act" data-s="all">All</button>
+              <button class="tab" data-s="2022">2022</button>
+              <button class="tab" data-s="2023">2023</button>
+              <button class="tab" data-s="2024">2024</button>
+            </div>
+            <div id="batFullLeader"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== BOWLERS PAGE ===== -->
+      <div class="page" id="page-bowlers">
+        <div class="kpi-row">
+          <div class="kpi k1"><div class="kpi-icon">🏹</div><div class="kpi-label">Most Wickets Season</div><div class="kpi-val">32</div><div class="kpi-sub">Harshal Patel 2021</div></div>
+          <div class="kpi k2"><div class="kpi-icon">💨</div><div class="kpi-label">Best Economy</div><div class="kpi-val">7.11</div><div class="kpi-sub">Rashid Khan 2019</div></div>
+          <div class="kpi k3"><div class="kpi-icon">🎯</div><div class="kpi-label">Best Figures</div><div class="kpi-val">5/27</div><div class="kpi-sub">Harshal Patel 2021</div></div>
+          <div class="kpi k4"><div class="kpi-icon">⭕</div><div class="kpi-label">Most Dot Balls</div><div class="kpi-val">145</div><div class="kpi-sub">Rashid Khan 2019</div></div>
+        </div>
+        <div class="row2">
+          <div class="card">
+            <div class="card-title">Top Wicket Takers</div>
+            <div class="tabs" id="bowlTabs">
+              <button class="tab act" data-mode="wkts">Wickets</button>
+              <button class="tab" data-mode="econ">Economy</button>
+              <button class="tab" data-mode="dots">Dot Balls</button>
+            </div>
+            <div style="height:200px;position:relative"><canvas id="bowlChart" role="img" aria-label="Top bowlers chart">Top bowlers.</canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Bowling Leaderboard</div>
+            <div id="bowlLeader"></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== VENUES PAGE ===== -->
+      <div class="page" id="page-venues">
+        <div class="kpi-row">
+          <div class="kpi k1"><div class="kpi-icon">🏟️</div><div class="kpi-label">Total Venues</div><div class="kpi-val">13</div><div class="kpi-sub">Across India</div></div>
+          <div class="kpi k2"><div class="kpi-icon">👥</div><div class="kpi-label">Largest Stadium</div><div class="kpi-val">1.32L</div><div class="kpi-sub">Narendra Modi, Ahmedabad</div></div>
+          <div class="kpi k3"><div class="kpi-icon">🏏</div><div class="kpi-label">Most Matches Hosted</div><div class="kpi-val">92</div><div class="kpi-sub">Wankhede, Mumbai</div></div>
+          <div class="kpi k4"><div class="kpi-icon">📈</div><div class="kpi-label">Highest Avg Score</div><div class="kpi-val">180</div><div class="kpi-sub">M Chinnaswamy, Bengaluru</div></div>
+        </div>
+        <div class="row2">
+          <div class="card">
+            <div class="card-title">Venues — Matches Hosted</div>
+            <div style="height:230px;position:relative"><canvas id="venueChart" role="img" aria-label="Venues matches hosted bar chart">Venues matches hosted.</canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Bat First vs Field First Win %</div>
+            <div style="height:230px;position:relative"><canvas id="venueWinChart" role="img" aria-label="Win percent bat vs field by venue">Bat first vs field first.</canvas></div>
+          </div>
+        </div>
+      </div>
+
+      <!-- ===== MATCHES PAGE ===== -->
+      <div class="page" id="page-matches">
+        <div class="kpi-row">
+          <div class="kpi k1"><div class="kpi-icon">📅</div><div class="kpi-label">2024 Champion</div><div class="kpi-val">KKR</div><div class="kpi-sub">Beat SRH in final</div></div>
+          <div class="kpi k2"><div class="kpi-icon">🎯</div><div class="kpi-label">2024 Matches</div><div class="kpi-val">74</div><div class="kpi-sub">League + Playoffs</div></div>
+          <div class="kpi k3"><div class="kpi-icon">🏆</div><div class="kpi-label">2024 Orange Cap</div><div class="kpi-val">741</div><div class="kpi-sub">V. Kohli — RCB</div></div>
+          <div class="kpi k4"><div class="kpi-icon">🎳</div><div class="kpi-label">2024 Purple Cap</div><div class="kpi-val">24</div><div class="kpi-sub">Harshal Patel — PBKS</div></div>
+        </div>
+        <div class="row2">
+          <div class="card">
+            <div class="card-title">Win Type Distribution</div>
+            <div style="height:220px;position:relative"><canvas id="winTypeChart" role="img" aria-label="Win type distribution donut chart">Win types.</canvas></div>
+          </div>
+          <div class="card">
+            <div class="card-title">Recent Match Results</div>
+            <div id="recentMatches"></div>
+          </div>
+        </div>
+        <div class="card">
+          <div class="card-title">Season Winners Timeline</div>
+          <div id="timeline"></div>
+        </div>
+      </div>
+
+    </div><!-- /content -->
+    <div class="footer">Data: IPL 2008–2026 &nbsp;|&nbsp; Power BI Dashboard Prototype &nbsp;|&nbsp; All buttons interactive</div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/Chart.js/4.4.1/chart.umd.js"></script>
+<script>
+// ─── DATA ───────────────────────────────────────────────────────────────────
+const TEAMS=[
+  {s:'MI',name:'Mumbai Indians',titles:5,finals:8,runners:3,hex:'#004BA0',win:62},
+  {s:'CSK',name:'Chennai Super Kings',titles:5,finals:10,runners:5,hex:'#F9CD05',win:59},
+  {s:'KKR',name:'Kolkata Knight Riders',titles:3,finals:4,runners:1,hex:'#3A225D',win:54},
+  {s:'RCB',name:'Royal Challengers',titles:2,finals:3,runners:3,hex:'#EC1C24',win:51},
+  {s:'SRH',name:'Sunrisers Hyderabad',titles:1,finals:4,runners:3,hex:'#F26522',win:52},
+  {s:'RR',name:'Rajasthan Royals',titles:1,finals:3,runners:2,hex:'#EA1A85',win:49},
+  {s:'GT',name:'Gujarat Titans',titles:1,finals:2,runners:1,hex:'#1C2B5E',win:58},
+  {s:'DC',name:'Delhi Capitals',titles:0,finals:1,runners:1,hex:'#0078BC',win:47},
+  {s:'PBKS',name:'Punjab Kings',titles:0,finals:1,runners:1,hex:'#AA4545',win:45},
+  {s:'LSG',name:'Lucknow SG',titles:0,finals:0,runners:0,hex:'#A72056',win:50},
+];
+const ORANGE=[
+  {y:2008,r:616,p:'Shaun Marsh'},{y:2009,r:572,p:'M. Hayden'},{y:2010,r:618,p:'Tendulkar'},
+  {y:2011,r:608,p:'Chris Gayle'},{y:2012,r:733,p:'Chris Gayle'},{y:2013,r:733,p:'M. Hussey'},
+  {y:2014,r:660,p:'Uthappa'},{y:2015,r:562,p:'D. Warner'},{y:2016,r:973,p:'V. Kohli'},
+  {y:2017,r:641,p:'D. Warner'},{y:2018,r:735,p:'Williamson'},{y:2019,r:692,p:'D. Warner'},
+  {y:2020,r:670,p:'KL Rahul'},{y:2021,r:635,p:'Gaikwad'},{y:2022,r:863,p:'Jos Buttler'},
+  {y:2023,r:890,p:'S. Gill'},{y:2024,r:741,p:'V. Kohli'},{y:2025,r:759,p:'Sudharsan'},
+  {y:2026,r:776,p:'Sooryavanshi'},
+];
+const PTS={
+  2019:{MI:18,CSK:18,DC:14,SRH:12,KKR:12,RR:10,RCB:10},
+  2020:{MI:18,DC:16,SRH:14,RCB:14,KKR:14,CSK:12,RR:12},
+  2021:{DC:20,CSK:18,RCB:18,KKR:14,MI:14,RR:10,SRH:6},
+  2022:{GT:20,RR:18,LSG:18,RCB:16,DC:14,PBKS:14,KKR:12,SRH:12,MI:8,CSK:8},
+  2023:{GT:20,CSK:16,LSG:16,MI:16,RR:14,RCB:14,KKR:12,PBKS:12,DC:10,SRH:6},
+  2024:{KKR:18,SRH:16,RR:16,RCB:14,CSK:14,DC:14,LSG:14,PBKS:12,GT:10,MI:8},
+};
+const BAT_ALL=[
+  {n:'Virat Kohli',t:'RCB',r:3922,avg:52.1,sr:138.4,sixes:102,hex:'#EC1C24'},
+  {n:'Shubman Gill',t:'GT',r:2755,avg:44.0,sr:148.2,sixes:98,hex:'#1C2B5E'},
+  {n:'David Warner',t:'SRH',r:2383,avg:42.5,sr:141.1,sixes:87,hex:'#F26522'},
+  {n:'KL Rahul',t:'PBKS',r:2114,avg:51.1,sr:134.2,sixes:76,hex:'#AA4545'},
+  {n:'Faf du Plessis',t:'RCB',r:1812,avg:44.2,sr:137.8,sixes:65,hex:'#EC1C24'},
+  {n:'Ruturaj Gaikwad',t:'CSK',r:1808,avg:43.8,sr:130.9,sixes:48,hex:'#F9CD05'},
+  {n:'Sanju Samson',t:'RR',r:1473,avg:38.8,sr:137.4,sixes:72,hex:'#EA1A85'},
+  {n:'Jos Buttler',t:'RR',r:1428,avg:45.9,sr:151.2,sixes:91,hex:'#EA1A85'},
+];
+const BAT_BY_SEASON={
+  '2022':[
+    {n:'Jos Buttler',t:'RR',r:863,avg:57.5,sr:154.4,hex:'#EA1A85'},
+    {n:'Hardik Pandya',t:'GT',r:487,avg:44.3,sr:143.2,hex:'#1C2B5E'},
+    {n:'Shubman Gill',t:'GT',r:483,avg:34.5,sr:127.4,hex:'#1C2B5E'},
+    {n:'Liam Livingstone',t:'PBKS',r:437,avg:39.7,sr:176.9,hex:'#AA4545'},
+    {n:'Sanju Samson',t:'RR',r:458,avg:35.2,sr:136.7,hex:'#EA1A85'},
+  ],
+  '2023':[
+    {n:'Shubman Gill',t:'GT',r:890,avg:59.3,sr:154.8,hex:'#1C2B5E'},
+    {n:'Faf du Plessis',t:'RCB',r:730,avg:54.6,sr:143.7,hex:'#EC1C24'},
+    {n:'Virat Kohli',t:'RCB',r:639,avg:53.3,sr:140.1,hex:'#EC1C24'},
+    {n:'Devon Conway',t:'CSK',r:672,avg:48.0,sr:139.7,hex:'#F9CD05'},
+    {n:'Yashasvi Jaiswal',t:'RR',r:625,avg:48.1,sr:151.3,hex:'#EA1A85'},
+  ],
+  '2024':[
+    {n:'Virat Kohli',t:'RCB',r:741,avg:61.8,sr:146.7,hex:'#EC1C24'},
+    {n:'Travis Head',t:'SRH',r:567,avg:40.5,sr:166.3,hex:'#F26522'},
+    {n:'Ruturaj Gaikwad',t:'CSK',r:583,avg:48.6,sr:131.9,hex:'#F9CD05'},
+    {n:'Sunil Narine',t:'KKR',r:488,avg:54.2,sr:176.8,hex:'#3A225D'},
+    {n:'Sanju Samson',t:'RR',r:531,avg:37.9,sr:140.5,hex:'#EA1A85'},
+  ],
+};
+const BOWL=[
+  {n:'Harshal Patel',t:'RCB',wk:32,econ:8.16,dots:97,hex:'#EC1C24'},
+  {n:'Kagiso Rabada',t:'DC',wk:30,econ:8.25,dots:116,hex:'#0078BC'},
+  {n:'Imran Tahir',t:'CSK',wk:26,econ:7.83,dots:112,hex:'#F9CD05'},
+  {n:'Rashid Khan',t:'SRH',wk:20,econ:7.11,dots:145,hex:'#F26522'},
+  {n:'Jasprit Bumrah',t:'MI',wk:27,econ:8.35,dots:102,hex:'#004BA0'},
+  {n:'Yuzvendra Chahal',t:'RR',wk:27,econ:7.81,dots:137,hex:'#EA1A85'},
+  {n:'Mohammed Shami',t:'GT',wk:28,econ:8.21,dots:109,hex:'#1C2B5E'},
+];
+const VENUES_DATA=[
+  {v:'Wankhede',city:'Mumbai',m:92,avg1:172,bat:54,field:46,cap:33108},
+  {v:'MA Chidambaram',city:'Chennai',m:78,avg1:158,bat:55,field:45,cap:50000},
+  {v:'Eden Gardens',city:'Kolkata',m:74,avg1:168,bat:52,field:48,cap:66349},
+  {v:'M Chinnaswamy',city:'Bengaluru',m:70,avg1:180,bat:48,field:52,cap:40000},
+  {v:'Arun Jaitley',city:'Delhi',m:68,avg1:167,bat:54,field:46,cap:41842},
+  {v:'RGISC',city:'Hyderabad',m:62,avg1:169,bat:51,field:49,cap:55000},
+  {v:'Sawai Mansingh',city:'Jaipur',m:58,avg1:169,bat:53,field:47,cap:30000},
+  {v:'PCA Mohali',city:'Mohali',m:42,avg1:173,bat:49,field:51,cap:26950},
+];
+const SEASONS_DATA=[
+  {y:2019,w:'Mumbai Indians',ws:'MI',r:'CSK'},{y:2020,w:'Mumbai Indians',ws:'MI',r:'DC'},
+  {y:2021,w:'Chennai Super Kings',ws:'CSK',r:'KKR'},{y:2022,w:'Gujarat Titans',ws:'GT',r:'RR'},
+  {y:2023,w:'Chennai Super Kings',ws:'CSK',r:'GT'},{y:2024,w:'Kolkata Knight Riders',ws:'KKR',r:'SRH'},
+  {y:2025,w:'Royal Challengers',ws:'RCB',r:'DC'},{y:2026,w:'Mumbai Indians',ws:'MI',r:'CSK'},
+];
+const thex=Object.fromEntries(TEAMS.map(t=>[t.s,t.hex]));
+
+// ─── STATE ────────────────────────────────────────────────────────────────────
+let curPage='overview', curSeason='All', champMode='titles', batMode='runs', batSeason='all', bowlMode='wkts';
+let charts={};
+
+function destroyChart(id){if(charts[id]){charts[id].destroy();delete charts[id];}}
+
+// ─── NAV ─────────────────────────────────────────────────────────────────────
+document.getElementById('mainNav').addEventListener('click',e=>{
+  const item=e.target.closest('.nav-item');
+  if(!item) return;
+  const page=item.dataset.page;
+  document.querySelectorAll('.nav-item').forEach(n=>n.classList.remove('active'));
+  item.classList.add('active');
+  document.querySelectorAll('.page').forEach(p=>p.classList.remove('active'));
+  document.getElementById('page-'+page).classList.add('active');
+  const titles={overview:'🏆 Overview Dashboard',teams:'🛡️ Team Analysis',batsmen:'🏏 Batsmen Stats',bowlers:'🎳 Bowler Stats',venues:'🏟️ Venue Analysis',matches:'📅 Match Results'};
+  document.getElementById('pageTitle').textContent=titles[page]||'IPL Analytics';
+  curPage=page;
+  renderPage(page);
+});
+
+// ─── SEASON FILTER ────────────────────────────────────────────────────────────
+document.getElementById('seasonBtns').addEventListener('click',e=>{
+  const btn=e.target.closest('.s-btn');
+  if(!btn) return;
+  curSeason=btn.dataset.s;
+  document.querySelectorAll('.s-btn').forEach(b=>b.classList.remove('act'));
+  btn.classList.add('act');
+  updateKPIs();
+  if(curPage==='overview'){renderChampBars();renderHeatmap();}
+  if(curPage==='batsmen'){renderBatChart();renderBatLeader();}
+});
+
+// ─── KPI UPDATE ──────────────────────────────────────────────────────────────
+const kpiData={
+  'All':{seasons:'19',matches:'1,100+',titlesVal:'5',titlesSub:'MI & CSK — joint record',runs:'973',runsSub:'V. Kohli — RCB 2016'},
+  '2022':{seasons:'2022',matches:'74',titlesVal:'GT',titlesSub:'Gujarat Titans won',runs:'863',runsSub:'Jos Buttler — RR 2022'},
+  '2023':{seasons:'2023',matches:'74',titlesVal:'CSK',titlesSub:'Chennai Super Kings',runs:'890',runsSub:'Shubman Gill — GT 2023'},
+  '2024':{seasons:'2024',matches:'74',titlesVal:'KKR',titlesSub:'Kolkata Knight Riders',runs:'741',runsSub:'V. Kohli — RCB 2024'},
+  '2025':{seasons:'2025',matches:'74',titlesVal:'RCB',titlesSub:'Royal Challengers',runs:'759',runsSub:'Sudharsan — GT 2025'},
+  '2026':{seasons:'2026',matches:'74',titlesVal:'MI',titlesSub:'Mumbai Indians',runs:'776',runsSub:'Sooryavanshi — RR 2026'},
+};
+function updateKPIs(){
+  const d=kpiData[curSeason]||kpiData['All'];
+  const s=document.getElementById('kpi-seasons');
+  const m=document.getElementById('kpi-matches');
+  const t=document.getElementById('kpi-titles');
+  const ts=document.getElementById('kpi-titles-sub');
+  const r=document.getElementById('kpi-runs');
+  const rs=document.getElementById('kpi-runs-sub');
+  if(s)s.textContent=d.seasons;
+  if(m)m.textContent=d.matches;
+  if(t)t.textContent=d.titlesVal;
+  if(ts)ts.textContent=d.titlesSub;
+  if(r)r.textContent=d.runs;
+  if(rs)rs.textContent=d.runsSub;
+}
+
+// ─── CHAMP TABS ──────────────────────────────────────────────────────────────
+document.addEventListener('click',e=>{
+  const tab=e.target.closest('.tab');
+  if(!tab) return;
+  const parent=tab.parentElement;
+  if(parent.id==='champTabs'){
+    champMode=tab.dataset.mode;
+    parent.querySelectorAll('.tab').forEach(t=>t.classList.remove('act'));
+    tab.classList.add('act');
+    renderChampBars();
+  }
+  if(parent.id==='batTabs'){
+    batMode=tab.dataset.mode;
+    parent.querySelectorAll('.tab').forEach(t=>t.classList.remove('act'));
+    tab.classList.add('act');
+    renderBatChart();
+  }
+  if(parent.id==='batSeasonTabs'){
+    batSeason=tab.dataset.s;
+    parent.querySelectorAll('.tab').forEach(t=>t.classList.remove('act'));
+    tab.classList.add('act');
+    renderBatLeader();
+  }
+  if(parent.id==='bowlTabs'){
+    bowlMode=tab.dataset.mode;
+    parent.querySelectorAll('.tab').forEach(t=>t.classList.remove('act'));
+    tab.classList.add('act');
+    renderBowlChart();
+  }
+});
+
+// ─── RENDER CHAMP BARS ────────────────────────────────────────────────────────
+function renderChampBars(){
+  const el=document.getElementById('champBars');
+  if(!el) return;
+  const key=champMode;
+  const sorted=[...TEAMS].sort((a,b)=>b[key]-a[key]);
+  const maxV=sorted[0][key]||1;
+  const label={titles:'Titles',finals:'Finals Played',runners:'Runners-Up'};
+  el.innerHTML=sorted.map(t=>{
+    const v=t[key];
+    const pct=v===0?4:Math.max(v/maxV*100,5);
+    return`<div class="champ-row">
+      <div class="team-badge" style="background:${t.hex}">${t.s}</div>
+      <div class="team-short">${t.s}</div>
+      <div class="bar-track">
+        <div class="bar-fill" style="width:${pct}%;background:${t.hex}99;border:1px solid ${t.hex}66"></div>
+        <span class="bar-val">${v}</span>
+      </div>
+    </div>`;
+  }).join('');
+}
+
+// ─── ORANGE CAP LINE ─────────────────────────────────────────────────────────
+function renderLine(){
+  destroyChart('lineChart');
+  const ctx=document.getElementById('lineChart');
+  if(!ctx) return;
+  let data=ORANGE;
+  if(curSeason!=='All'){
+    const s=parseInt(curSeason);
+    data=ORANGE.filter(d=>d.y>=s-1&&d.y<=s);
+  }
+  const bgs=data.map(d=>d.r===973?'#FFD700':'#FF6B00');
+  const radii=data.map(d=>d.r===973?7:4);
+  charts['lineChart']=new Chart(ctx,{
+    type:'line',
+    data:{
+      labels:data.map(d=>d.y),
+      datasets:[{label:'Runs',data:data.map(d=>d.r),borderColor:'#FF6B00',borderWidth:2,pointBackgroundColor:bgs,pointRadius:radii,fill:true,backgroundColor:'rgba(255,107,0,.07)',tension:.35}]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{
+        legend:{display:false},
+        tooltip:{callbacks:{label:ctx=>{const d=ORANGE.find(o=>o.y==ctx.label);return[` ${d?d.p:''}: ${ctx.raw}`];}},backgroundColor:'#111827',borderColor:'#FF6B00',borderWidth:1,titleColor:'#FF6B00',bodyColor:'#e2e8f0'}
+      },
+      scales:{
+        x:{ticks:{color:'#64748b',font:{size:9}},grid:{color:'rgba(31,41,55,.4)'},border:{color:'transparent'}},
+        y:{ticks:{color:'#64748b',font:{size:9}},grid:{color:'rgba(31,41,55,.4)'},border:{color:'transparent'},min:500}
+      }
+    }
+  });
+}
+
+// ─── HEATMAP ─────────────────────────────────────────────────────────────────
+function renderHeatmap(){
+  const el=document.getElementById('heatmap');
+  if(!el) return;
+  const seasons=curSeason==='All'?[2019,2020,2021,2022,2023,2024]:[parseInt(curSeason)].filter(s=>PTS[s]);
+  const teams=['MI','CSK','RCB','KKR','DC','SRH','RR','GT','PBKS','LSG'];
+  let html=`<div class="hm-header" style="display:flex;gap:2px;margin-left:34px;margin-bottom:3px">${seasons.map(s=>`<div style="font-size:9px;color:var(--muted);width:32px;text-align:center">${s}</div>`).join('')}</div>`;
+  teams.forEach(team=>{
+    html+=`<div style="display:flex;align-items:center;gap:2px;margin-bottom:2px"><div style="font-size:9px;color:var(--muted);width:32px;text-align:right;padding-right:4px">${team}</div>`;
+    seasons.forEach(yr=>{
+      const pts=PTS[yr]&&PTS[yr][team]!==undefined?PTS[yr][team]:null;
+      if(pts===null){html+=`<div style="width:32px;height:20px;border-radius:3px;background:rgba(255,255,255,.02)"></div>`;return;}
+      const intensity=pts/20;
+      const hex=thex[team]||'#FF6B00';
+      const alpha=Math.round(intensity*170+30).toString(16).padStart(2,'0');
+      const textColor=intensity>0.55?'#fff':'#9ca3af';
+      html+=`<div style="width:32px;height:20px;border-radius:3px;background:${hex}${alpha};display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:600;color:${textColor}">${pts}</div>`;
+    });
+    html+=`</div>`;
+  });
+  el.innerHTML=html;
+}
+
+// ─── BAT LEADERBOARD ─────────────────────────────────────────────────────────
+function renderBatLeader(){
+  const el=document.getElementById('batLeader');
+  if(!el) return;
+  let data=batSeason==='all'?BAT_ALL:(BAT_BY_SEASON[batSeason]||BAT_ALL);
+  const maxR=Math.max(...data.map(d=>d.r));
+  el.innerHTML=data.slice(0,6).map((b,i)=>`
+    <div class="lb-row">
+      <div class="lb-rank ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${i+1}</div>
+      <div style="flex:1">
+        <div style="font-size:11px;color:var(--text)">${b.n}</div>
+        <div style="display:flex;align-items:center;gap:4px;margin-top:2px">
+          <div class="lb-dot" style="background:${b.hex}"></div>
+          <span style="font-size:9px;color:var(--muted)">${b.t}</span>
+        </div>
+        <div class="lb-bar" style="width:${b.r/maxR*100}%;background:${b.hex}77;margin-top:3px"></div>
+      </div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:17px;color:${b.hex}">${b.r.toLocaleString()}</div>
+    </div>`).join('');
+}
+
+// ─── BAT CHART ───────────────────────────────────────────────────────────────
+function renderBatChart(){
+  destroyChart('batChart');
+  const ctx=document.getElementById('batChart');
+  if(!ctx) return;
+  let data=batSeason==='all'?BAT_ALL:(BAT_BY_SEASON[batSeason]||BAT_ALL);
+  const modeMap={runs:{key:'r',label:'Runs'},avg:{key:'avg',label:'Average'},sr:{key:'sr',label:'Strike Rate'},sixes:{key:'sixes',label:'Sixes'}};
+  const m=modeMap[batMode]||modeMap.runs;
+  const top=data.slice(0,7);
+  charts['batChart']=new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:top.map(d=>d.n.split(' ').pop()),
+      datasets:[{label:m.label,data:top.map(d=>d[m.key]),backgroundColor:top.map(d=>d.hex+'cc'),borderColor:top.map(d=>d.hex),borderWidth:1,borderRadius:4}]
+    },
+    options:{
+      indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#111827',borderColor:'#374151',borderWidth:1,titleColor:'#e2e8f0',bodyColor:'#94a3b8'}},
+      scales:{
+        x:{ticks:{color:'#64748b',font:{size:9}},grid:{color:'rgba(31,41,55,.4)'},border:{color:'transparent'}},
+        y:{ticks:{color:'#e2e8f0',font:{size:10}},grid:{display:false},border:{color:'transparent'}}
+      }
+    }
+  });
+}
+
+// ─── BOWL CHART ──────────────────────────────────────────────────────────────
+function renderBowlChart(){
+  destroyChart('bowlChart');
+  const ctx=document.getElementById('bowlChart');
+  if(!ctx) return;
+  const modeMap={wkts:{key:'wk',label:'Wickets'},econ:{key:'econ',label:'Economy'},dots:{key:'dots',label:'Dot Balls'}};
+  const m=modeMap[bowlMode];
+  const data=[...BOWL].sort((a,b)=>b[m.key]-a[m.key]);
+  charts['bowlChart']=new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:data.map(d=>d.n.split(' ').pop()),
+      datasets:[{label:m.label,data:data.map(d=>d[m.key]),backgroundColor:data.map(d=>d.hex+'cc'),borderColor:data.map(d=>d.hex),borderWidth:1,borderRadius:4}]
+    },
+    options:{
+      indexAxis:'y',responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{display:false},tooltip:{backgroundColor:'#111827',borderColor:'#374151',borderWidth:1,titleColor:'#e2e8f0',bodyColor:'#94a3b8'}},
+      scales:{
+        x:{ticks:{color:'#64748b',font:{size:9}},grid:{color:'rgba(31,41,55,.4)'},border:{color:'transparent'}},
+        y:{ticks:{color:'#e2e8f0',font:{size:10}},grid:{display:false},border:{color:'transparent'}}
+      }
+    }
+  });
+}
+
+// ─── BOWL LEADERBOARD ────────────────────────────────────────────────────────
+function renderBowlLeader(){
+  const el=document.getElementById('bowlLeader');
+  if(!el) return;
+  const sorted=[...BOWL].sort((a,b)=>b.wk-a.wk);
+  el.innerHTML=sorted.map((b,i)=>`
+    <div class="lb-row">
+      <div class="lb-rank ${i===0?'gold':i===1?'silver':i===2?'bronze':''}">${i+1}</div>
+      <div style="flex:1">
+        <div style="font-size:11px;color:var(--text)">${b.n}</div>
+        <div style="display:flex;gap:8px;margin-top:2px;font-size:9px;color:var(--muted)">
+          <span style="color:${b.hex}">${b.t}</span>
+          <span>Eco: ${b.econ}</span>
+          <span>Dots: ${b.dots}</span>
+        </div>
+      </div>
+      <div style="font-family:'Bebas Neue',sans-serif;font-size:17px;color:${b.hex}">${b.wk}</div>
+    </div>`).join('');
+}
+
+// ─── TEAMS PAGE ──────────────────────────────────────────────────────────────
+function renderTeamsChart(){
+  destroyChart('teamsChart');
+  const ctx=document.getElementById('teamsChart');
+  if(!ctx) return;
+  const sorted=[...TEAMS].sort((a,b)=>b.titles-a.titles);
+  charts['teamsChart']=new Chart(ctx,{
+    type:'bar',
+    data:{
+      labels:sorted.map(t=>t.s),
+      datasets:[
+        {label:'Titles',data:sorted.map(t=>t.titles),backgroundColor:sorted.map(t=>t.hex+'cc'),borderColor:sorted.map(t=>t.hex),borderWidth:1,borderRadius:4},
+        {label:'Finals',data:sorted.map(t=>t.finals),backgroundColor:'rgba(255,255,255,.06)',borderColor:'rgba(255,255,255,.2)',borderWidth:1,borderRadius:4}
+      ]
+    },
+    options:{
+      responsive:true,maintainAspectRatio:false,
+      plugins:{legend:{labels:{color:'#64748b',font:{size:10},boxWidth:10}},tooltip:{backgroundColor:'#111827',borderColor:'#374151',borderWidth:1,titleColor:'#e2e8f0',bodyColor:'#94a3b8'}},
+      scales:{
+        x:{ticks:{color:'#e2e8f0',font:{size:10}},grid:{color:'rgba(31,41,55,.4)'},border:{color:'transparent'}},
+        y:{ticks:{color:'#64748b',font:{size:9}},grid:{color:'rgba(31,41,55,.3)'},border:{color:'transparent'}}
+      }
+    }
+  });
+}
+function renderTeamWinRate(){
+  const el=document.getElementById('teamWinRate');
+  if(!el) return;
+  const sorted=[...TEAMS].sort((a,b)=>b.win-a.win);
+  el.innerHTML=sorted.map(t=>`
+    <div style="display:flex;align-items:center;gap:8px;margin-bottom:7px">
+      <div style="width:28px;height:28px;border-radius:50%;background:${t.hex};display:flex;align-items:center;justify-content:center;font-size:7px;font-weight:700;color:#fff;flex-shrink:0">${t.s}</div>
+      <div style="flex:1">
+        <div style="display:flex;justify-content:space-between;margin-bottom:2px">
+          <span style="font-size:10px;color:var(--text)">${t.s}</span>
+          <span style="font-size:10px;font-weight:600;color:${t.hex}">${t.win}%</span>
+        </div>
+        <div style="background:rgba(255,255,255,.05);border-radius:2px;height:5px;overflow:hidden">
+          <div style="width:${t.win}%;height:100%;background:${t.hex}99;border-radius:2px"></div>
+        </div>
+      </div>
+    </div>`).join('');
+}
+function renderTeamTable(){
+  const el=document.getElementById('teamTable');
+  if(!el) return;
+  const cols=['Team','Titles','Finals','Runner-Up','Win%','Founded','City'];
+  let html=`<table style="width:100%;border-collapse:collapse;font-size:11px">
+    <thead><tr>${cols.map(c=>`<th style="text-align:left;padding:6px 8px;color:var(--muted);font-size:9px;text-transform:uppercase;letter-spacing:1px;border-bottom:1px solid var(--border)">${c}</th>`).join('')}</tr></thead>
+    <tbody>`;
+  const allTeams=[...TEAMS,{s:'DC_old',name:'Deccan Chargers',titles:1,finals:2,runners:1,hex:'#888',win:48},{s:'KXIP',name:'Kings XI Punjab',titles:0,finals:1,runners:1,hex:'#AA4545',win:44}];
+  allTeams.sort((a,b)=>b.titles-a.titles).forEach((t,i)=>{
+    const bg=i%2===0?'transparent':'rgba(255,255,255,.02)';
+    html+=`<tr style="background:${bg}">
+      <td style="padding:6px 8px;color:var(--text)"><span style="display:inline-block;width:8px;height:8px;border-radius:50%;background:${t.hex};margin-right:6px;vertical-align:middle"></span>${t.name||t.s}</td>
+      <td style="padding:6px 8px;color:var(--gold);font-weight:600">${t.titles}</td>
+      <td style="padding:6px 8px;color:var(--muted)">${t.finals}</td>
+      <td style="padding:6px 8px;color:var(--muted)">${t.runners}</td>
+      <td style="padding:6px 8px;color:var(--cyan)">${t.win||'—'}%</td>
+      <td style="padding:6px 8px;color:var(--muted)">2008</td>
+      <td style="padding:6px 8px;color:var(--muted)">${['Mumbai','Chennai','Kolkata','Bengaluru','Hyderabad','Jaipur','Ahmedabad','Delhi','Mohali','Lucknow','Hyderabad','Pune'][TEAMS.indexOf(t)]||'—'}</td>
+    </tr>`;
+  });
+  html+=`</tbody></table>`;
+  el.innerHTML=html;
+}
+
+// ─── VENUE CHARTS ─────────────────────────────────────────────────────────────
+function renderVenueCharts(){
+  destroyChart('venueChart');destroyChart('venueWinChart');
+  const ctx1=document.getElementById('venueChart');
+  const ctx2=document.getElementById('venueWinChart');
+  if(ctx1){
+    charts['venueChart']=new Chart(ctx1,{
+      type:'bar',
+      data:{
+        labels:VENUES_DATA.map(v=>v.v),
+        datasets:[{label:'Matches',data:VENUES_DATA.map(v=>v.m),backgroundColor:'#00E5FF44',borderColor:'#00E5FF',borderWidth:1,borderRadius:4}]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{display:false},tooltip:{backgroundColor:'#111827',borderColor:'#00E5FF',borderWidth:1,titleColor:'#00E5FF',bodyColor:'#e2e8f0'}},
+        scales:{x:{ticks:{color:'#94a3b8',font:{size:9}},grid:{color:'rgba(31,41,55,.4)'},border:{color:'transparent'}},y:{ticks:{color:'#64748b',font:{size:9}},grid:{color:'rgba(31,41,55,.4)'},border:{color:'transparent'}}}}
+    });
+  }
+  if(ctx2){
+    charts['venueWinChart']=new Chart(ctx2,{
+      type:'bar',
+      data:{
+        labels:VENUES_DATA.map(v=>v.v),
+        datasets:[
+          {label:'Bat First Win%',data:VENUES_DATA.map(v=>v.bat),backgroundColor:'#FF6B0077',borderColor:'#FF6B00',borderWidth:1,borderRadius:4},
+          {label:'Field First Win%',data:VENUES_DATA.map(v=>v.field),backgroundColor:'#a855f744',borderColor:'#a855f7',borderWidth:1,borderRadius:4}
+        ]
+      },
+      options:{responsive:true,maintainAspectRatio:false,plugins:{legend:{labels:{color:'#64748b',font:{size:9},boxWidth:8}},tooltip:{backgroundColor:'#111827',borderColor:'#374151',borderWidth:1,titleColor:'#e2e8f0',bodyColor:'#94a3b8'}},
+        scales:{x:{ticks:{color:'#94a3b8',font:{size:9}},grid:{color:'rgba(31,41,55,.4)'},border:{color:'transparent'}},y:{ticks:{color:'#64748b',font:{size:9}},grid:{color:'rgba(31,41,55,.3)'},border:{color:'transparent'},min:40,max:60}}}
+    });
+  }
+}
+
+// ─── MATCHES PAGE ─────────────────────────────────────────────────────────────
+function renderWinTypeChart(){
+  destroyChart('winTypeChart');
+  const ctx=document.getElementById('winTypeChart');
+  if(!ctx) return;
+  charts['winTypeChart']=new Chart(ctx,{
+    type:'doughnut',
+    data:{
+      labels:['By Runs','By Wickets','Super Over'],
+      datasets:[{data:[52,46,2],backgroundColor:['#FF6B00cc','#00E5FFcc','#FFD700cc'],borderColor:['#FF6B00','#00E5FF','#FFD700'],borderWidth:1}]
+    },
+    options:{responsive:true,maintainAspectRatio:false,cutout:'65%',
+      plugins:{legend:{position:'bottom',labels:{color:'#64748b',font:{size:10},boxWidth:10,padding:12}},tooltip:{backgroundColor:'#111827',borderColor:'#374151',borderWidth:1,titleColor:'#e2e8f0',bodyColor:'#94a3b8'}}}
+  });
+}
+function renderRecentMatches(){
+  const el=document.getElementById('recentMatches');
+  if(!el) return;
+  const matches=[
+    {t1:'KKR',t2:'SRH',r:'KKR won by 8 wkts',d:'Final 2024',pom:'Venkatesh Iyer'},
+    {t1:'CSK',t2:'GT',r:'CSK won by 5 wkts',d:'Final 2023',pom:'Devon Conway'},
+    {t1:'GT',t2:'RR',r:'GT won by 7 wkts',d:'Final 2022',pom:'Hardik Pandya'},
+    {t1:'CSK',t2:'KKR',r:'CSK won by 27 runs',d:'Final 2021',pom:'Faf du Plessis'},
+    {t1:'MI',t2:'DC',r:'MI won by 5 wkts',d:'Final 2020',pom:'Trent Boult'},
+  ];
+  el.innerHTML=matches.map(m=>`
+    <div style="display:flex;align-items:center;gap:8px;padding:7px 0;border-bottom:1px solid rgba(31,41,55,.5)">
+      <div style="width:32px;height:32px;border-radius:50%;background:${thex[m.t1]||'#333'};display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;flex-shrink:0">${m.t1}</div>
+      <div style="flex:1">
+        <div style="font-size:11px;color:var(--text)">${m.t1} vs ${m.t2}</div>
+        <div style="font-size:9px;color:var(--orange);margin-top:1px">${m.r}</div>
+        <div style="font-size:9px;color:var(--muted)">⭐ POM: ${m.pom}</div>
+      </div>
+      <div style="font-size:9px;color:var(--muted);text-align:right">${m.d}</div>
+      <div style="width:32px;height:32px;border-radius:50%;background:${thex[m.t2]||'#333'};display:flex;align-items:center;justify-content:center;font-size:8px;font-weight:700;color:#fff;flex-shrink:0">${m.t2}</div>
+    </div>`).join('');
+}
+function renderTimeline(){
+  const el=document.getElementById('timeline');
+  if(!el) return;
+  el.innerHTML=`<div style="display:flex;gap:6px;flex-wrap:wrap;padding-top:4px">
+    ${SEASONS_DATA.map(s=>`
+      <div style="background:${thex[s.ws]||'#333'}22;border:1px solid ${thex[s.ws]||'#333'}66;border-radius:6px;padding:6px 10px;text-align:center;flex:1;min-width:80px">
+        <div style="font-size:9px;color:var(--muted);margin-bottom:2px">${s.y}</div>
+        <div style="font-size:12px;font-weight:600;color:${thex[s.ws]||'var(--text)'}">${s.ws}</div>
+        <div style="font-size:8px;color:var(--muted);margin-top:1px">def. ${s.r}</div>
+      </div>`).join('')}
+  </div>`;
+}
+
+// ─── VENUE LIST ───────────────────────────────────────────────────────────────
+function renderVenueList(){
+  const el=document.getElementById('venueList');
+  if(!el) return;
+  const maxM=VENUES_DATA[0].m;
+  el.innerHTML=VENUES_DATA.map(v=>`
+    <div class="venue-row">
+      <div style="flex:1">
+        <div style="font-size:11px;color:var(--text)">${v.v}</div>
+        <div style="display:flex;align-items:center;gap:5px;margin-top:2px">
+          <div style="width:${v.m/maxM*60+10}px;height:2px;background:rgba(0,229,255,.35);border-radius:1px"></div>
+          <span style="font-size:9px;color:var(--muted)">${v.city} · ${v.m}m</span>
+        </div>
+      </div>
+      <div style="text-align:right">
+        <div style="font-size:12px;font-weight:600;color:var(--cyan)">~${v.avg1}</div>
+        <div style="font-size:9px;color:var(--muted)">avg runs</div>
+      </div>
+    </div>`).join('');
+}
+
+// ─── BATSMEN FULL PAGE ────────────────────────────────────────────────────────
+function renderBatFullLeader(){
+  const el=document.getElementById('batFullLeader');
+  if(!el) return;
+  renderBatLeader();
+}
+
+// ─── PAGE ROUTER ─────────────────────────────────────────────────────────────
+function renderPage(page){
+  if(page==='overview'){
+    renderChampBars();renderLine();renderHeatmap();renderBatLeader();renderVenueList();
+  }else if(page==='teams'){
+    setTimeout(()=>{renderTeamsChart();renderTeamWinRate();renderTeamTable();},50);
+  }else if(page==='batsmen'){
+    setTimeout(()=>{renderBatChart();renderBatLeader();},50);
+  }else if(page==='bowlers'){
+    setTimeout(()=>{renderBowlChart();renderBowlLeader();},50);
+  }else if(page==='venues'){
+    setTimeout(()=>{renderVenueCharts();},50);
+  }else if(page==='matches'){
+    setTimeout(()=>{renderWinTypeChart();renderRecentMatches();renderTimeline();},50);
+  }
+}
+
+// ─── INIT ────────────────────────────────────────────────────────────────────
+renderPage('overview');
+</script>
